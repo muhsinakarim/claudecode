@@ -1,0 +1,173 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                String     @id @default(cuid())
+  email             String     @unique
+  password          String
+  name              String
+  status            UserStatus @default(PENDING)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  
+  // Profile information
+  country           String?
+  phoneNumber       String?
+  bio               String?
+  experience        String?
+  
+  // Quality check
+  qualityCheckPassed Boolean?
+  qualityCheckDate   DateTime?
+  
+  // Bank details
+  bankDetails        BankDetails?
+  
+  // Relations
+  images             Image[]
+  sales              Sale[]
+  notifications      Notification[]
+  
+  @@map("users")
+}
+
+model BankDetails {
+  id              String @id @default(cuid())
+  userId          String @unique
+  accountNumber   String
+  routingNumber   String
+  accountHolderName String
+  bankName        String
+  encryptedData   String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  user            User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("bank_details")
+}
+
+model Image {
+  id              String      @id @default(cuid())
+  userId          String
+  filename        String
+  originalName    String
+  path            String
+  size            Int
+  width           Int
+  height          Int
+  mimeType        String
+  status          ImageStatus @default(PENDING)
+  
+  // AI-generated metadata
+  title           String?
+  description     String?
+  keywords        String? // JSON string of array
+  tags            String? // JSON string of array
+  category        String?
+  
+  // Analytics
+  views           Int @default(0)
+  downloads       Int @default(0)
+  collections     Int @default(0)
+  
+  // Quality check
+  qualityScore    Float?
+  qualityCheckedAt DateTime?
+  qualityCheckedBy String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  user            User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sales           Sale[]
+  
+  @@map("images")
+}
+
+model Sale {
+  id              String @id @default(cuid())
+  imageId         String
+  userId          String
+  amount          Float
+  commission      Float
+  buyerEmail      String
+  licenseType     String
+  status          SaleStatus @default(PENDING)
+  payoutStatus    PayoutStatus @default(PENDING)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  image           Image @relation(fields: [imageId], references: [id])
+  user            User @relation(fields: [userId], references: [id])
+  
+  @@map("sales")
+}
+
+model Notification {
+  id              String           @id @default(cuid())
+  userId          String
+  type            NotificationType
+  title           String
+  message         String
+  read            Boolean @default(false)
+  channels        String // JSON string of array: email, whatsapp, mobile
+  sentAt          DateTime?
+  createdAt       DateTime @default(now())
+  
+  // Relations
+  user            User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("notifications")
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum ImageStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  LIVE
+}
+
+enum SaleStatus {
+  PENDING
+  COMPLETED
+  REFUNDED
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum NotificationType {
+  QUALITY_CHECK_PASSED
+  QUALITY_CHECK_FAILED
+  IMAGE_APPROVED
+  IMAGE_REJECTED
+  SALE_MADE
+  PAYOUT_PROCESSED
+  ACCOUNT_UPDATE
+}

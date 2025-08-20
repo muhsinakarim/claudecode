@@ -1,103 +1,351 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { motion } from 'framer-motion'
+import Link from 'next/link'
+import { Camera, Users, TrendingUp, DollarSign, CheckCircle } from 'lucide-react'
+import AlamyLogo from '../components/AlamyLogo'
+
+export default function HomePage() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--surface-primary)', color: 'var(--text-primary)' }}>
+      {/* Header */}
+      <header className="border-b" style={{ borderColor: 'var(--border-tertiary)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div className="flex items-center space-x-3">
+              <AlamyLogo width={40} height={40} />
+              <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                Alamy Contributors
+              </h1>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Link 
+                href="/login"
+                className="px-4 py-2 rounded-lg font-medium transition-colors"
+                style={{ 
+                  color: 'var(--text-primary)',
+                  borderRadius: 'var(--radius-4)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--surface-secondary)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                }}
+              >
+                Sign In
+              </Link>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+      </header>
+
+      {/* Hero Section */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-5xl md:text-6xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
+              Earn Money from Your{' '}
+              <span style={{ color: 'var(--surface-brand)' }}>Photography</span>
+            </h1>
+            <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto" style={{ color: 'var(--text-tertiary)' }}>
+              Join thousands of photographers earning up to 50% commission by selling their images on Alamy
+            </p>
+          </motion.div>
+
+          {/* Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16"
+          >
+            <div className="text-center">
+              <div className="text-4xl font-bold mb-2" style={{ color: 'var(--surface-brand)' }}>$2.3M+</div>
+              <div style={{ color: 'var(--text-tertiary)' }}>Paid to contributors monthly</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold mb-2" style={{ color: 'var(--surface-brand)' }}>250K+</div>
+              <div style={{ color: 'var(--text-tertiary)' }}>Active contributors</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold mb-2" style={{ color: 'var(--surface-brand)' }}>50%</div>
+              <div style={{ color: 'var(--text-tertiary)' }}>Commission rate</div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Get Started Section */}
+      <section className="py-20" style={{ backgroundColor: 'var(--surface-secondary)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+              Choose Your Path
+            </h2>
+            <p className="text-xl" style={{ color: 'var(--text-tertiary)' }}>
+              Get started based on your current status with Alamy
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* New to Alamy */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="rounded-2xl p-8 border-2 transition-all duration-300 hover:border-brand"
+              style={{ 
+                backgroundColor: 'var(--surface-primary)',
+                borderColor: 'var(--border-tertiary)',
+                borderRadius: 'var(--radius-8)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--surface-brand)'
+                e.currentTarget.style.transform = 'translateY(-4px)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-tertiary)'
+                e.currentTarget.style.transform = 'translateY(0)'
+              }}
+            >
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 255, 123, 0.1)' }}>
+                  <Users className="h-8 w-8" style={{ color: 'var(--surface-brand)' }} />
+                </div>
+                <h3 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+                  New to Alamy
+                </h3>
+                <p style={{ color: 'var(--text-tertiary)' }}>
+                  Don't have an Alamy account yet? Start here to create your account and become a contributor.
+                </p>
+              </div>
+
+              <div className="space-y-3 mb-8">
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="h-5 w-5" style={{ color: 'var(--surface-brand)' }} />
+                  <span className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Create your Alamy account</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="h-5 w-5" style={{ color: 'var(--surface-brand)' }} />
+                  <span className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Set up contributor profile</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="h-5 w-5" style={{ color: 'var(--surface-brand)' }} />
+                  <span className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Take quality assessment</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="h-5 w-5" style={{ color: 'var(--surface-brand)' }} />
+                  <span className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Start uploading & earning</span>
+                </div>
+              </div>
+
+              <Link
+                href="/register"
+                className="block w-full text-center py-4 px-6 rounded-lg font-semibold transition-all duration-200"
+                style={{
+                  backgroundColor: 'var(--surface-brand)',
+                  color: '#000000',
+                  borderRadius: 'var(--radius-4)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)'
+                }}
+              >
+                Get Started - It's Free
+              </Link>
+            </motion.div>
+
+            {/* Existing Alamy User */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              className="rounded-2xl p-8 border-2 transition-all duration-300"
+              style={{ 
+                backgroundColor: 'var(--surface-primary)',
+                borderColor: 'var(--border-tertiary)',
+                borderRadius: 'var(--radius-8)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--surface-brand)'
+                e.currentTarget.style.transform = 'translateY(-4px)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-tertiary)'
+                e.currentTarget.style.transform = 'translateY(0)'
+              }}
+            >
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 255, 123, 0.1)' }}>
+                  <Camera className="h-8 w-8" style={{ color: 'var(--surface-brand)' }} />
+                </div>
+                <h3 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+                  Existing Alamy User
+                </h3>
+                <p style={{ color: 'var(--text-tertiary)' }}>
+                  Already have an Alamy account? Perfect! Complete your contributor setup to start selling.
+                </p>
+              </div>
+
+              <div className="space-y-3 mb-8">
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="h-5 w-5" style={{ color: 'var(--surface-brand)' }} />
+                  <span className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Complete contributor profile</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="h-5 w-5" style={{ color: 'var(--surface-brand)' }} />
+                  <span className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Take quality assessment</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="h-5 w-5" style={{ color: 'var(--surface-brand)' }} />
+                  <span className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Upload your first images</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="h-5 w-5" style={{ color: 'var(--surface-brand)' }} />
+                  <span className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Start earning immediately</span>
+                </div>
+              </div>
+
+              <Link
+                href="/contributor-setup"
+                className="block w-full text-center py-4 px-6 rounded-lg font-semibold transition-all duration-200 border-2"
+                style={{
+                  backgroundColor: 'transparent',
+                  color: 'var(--surface-brand)',
+                  borderColor: 'var(--surface-brand)',
+                  borderRadius: 'var(--radius-4)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--surface-brand)'
+                  e.currentTarget.style.color = '#000000'
+                  e.currentTarget.style.transform = 'scale(1.02)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.color = 'var(--surface-brand)'
+                  e.currentTarget.style.transform = 'scale(1)'
+                }}
+              >
+                Complete Contributor Setup
+              </Link>
+            </motion.div>
+          </div>
+
+          {/* Already a Contributor */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.0 }}
+            className="text-center mt-12"
+          >
+            <p className="mb-4" style={{ color: 'var(--text-tertiary)' }}>
+              Already a contributor?
+            </p>
+            <Link
+              href="/login"
+              className="inline-flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors"
+              style={{
+                color: 'var(--text-primary)',
+                borderRadius: 'var(--radius-4)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--surface-tertiary)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+              }}
+            >
+              <span>Sign in to your dashboard</span>
+              <TrendingUp className="h-4 w-4" />
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.2 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+              Why Choose Alamy?
+            </h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 1.4 }}
+              className="text-center"
+            >
+              <DollarSign className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--surface-brand)' }} />
+              <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                High Commission Rates
+              </h3>
+              <p style={{ color: 'var(--text-tertiary)' }}>
+                Earn up to 50% commission on every sale, with 100% for students
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 1.6 }}
+              className="text-center"
+            >
+              <Camera className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--surface-brand)' }} />
+              <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                Keep Your Rights
+              </h3>
+              <p style={{ color: 'var(--text-tertiary)' }}>
+                Retain full copyright of your images and sell non-exclusively
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 1.8 }}
+              className="text-center"
+            >
+              <TrendingUp className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--surface-brand)' }} />
+              <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                Global Reach
+              </h3>
+              <p style={{ color: 'var(--text-tertiary)' }}>
+                Access millions of buyers worldwide through our established platform
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t py-8" style={{ borderColor: 'var(--border-tertiary)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p style={{ color: 'var(--text-tertiary)' }}>
+            © 2024 Alamy Ltd. All rights reserved.
+          </p>
+        </div>
       </footer>
     </div>
-  );
+  )
 }
