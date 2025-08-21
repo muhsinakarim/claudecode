@@ -63,11 +63,15 @@ export default function NotificationBell() {
     const unsubscribe = notificationStore.subscribe(updateNotifications)
 
     // Start polling for real-time updates (every 15 seconds for better responsiveness)
-    const stopPolling = notificationStore.startPolling(15000)
+    const stopPolling = typeof notificationStore.startPolling === 'function' 
+      ? notificationStore.startPolling(15000) 
+      : undefined
 
     return () => {
       unsubscribe()
-      stopPolling()
+      if (stopPolling && typeof stopPolling === 'function') {
+        stopPolling()
+      }
     }
   }, [])
 
@@ -190,7 +194,7 @@ export default function NotificationBell() {
                     No notifications yet
                   </h4>
                   <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
-                    We'll notify you when something important happens
+                    We&apos;ll notify you when something important happens
                   </p>
                 </div>
               ) : (

@@ -4,7 +4,7 @@ import { verifyToken } from '@/lib/auth'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.cookies.get('token')?.value
@@ -18,9 +18,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
+    const resolvedParams = await params
+    
     const notification = await prisma.notification.findFirst({
       where: {
-        id: params.id,
+        id: resolvedParams.id,
         userId: decoded.userId
       }
     })
@@ -30,7 +32,7 @@ export async function DELETE(
     }
 
     await prisma.notification.delete({
-      where: { id: params.id }
+      where: { id: resolvedParams.id }
     })
 
     return NextResponse.json({ message: 'Notification deleted successfully' })
@@ -42,7 +44,7 @@ export async function DELETE(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.cookies.get('token')?.value
@@ -57,10 +59,11 @@ export async function PATCH(
     }
 
     const { read } = await request.json()
+    const resolvedParams = await params
 
     const notification = await prisma.notification.findFirst({
       where: {
-        id: params.id,
+        id: resolvedParams.id,
         userId: decoded.userId
       }
     })
@@ -70,7 +73,7 @@ export async function PATCH(
     }
 
     const updatedNotification = await prisma.notification.update({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       data: { read }
     })
 

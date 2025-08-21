@@ -126,7 +126,7 @@ export default function HomePage() {
                   New to Alamy
                 </h3>
                 <p style={{ color: 'var(--text-tertiary)' }}>
-                  Don't have an Alamy account yet? Start here to create your account and become a contributor.
+                  Don&apos;t have an Alamy account yet? Start here to create your account and become a contributor.
                 </p>
               </div>
 
@@ -164,7 +164,7 @@ export default function HomePage() {
                   e.currentTarget.style.transform = 'scale(1)'
                 }}
               >
-                Get Started - It's Free
+                Get Started - It&apos;s Free
               </Link>
             </motion.div>
 

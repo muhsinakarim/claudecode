@@ -27,7 +27,7 @@ export default function DashboardPage() {
     totalViews: 0,
     totalDownloads: 0
   })
-  const [recentImages, setRecentImages] = useState<any[]>([])
+  const [recentImages, setRecentImages] = useState<Array<{id: string, name: string, views: number, downloads: number, status: string, earnings: number, trend: string, uploadDate: string}>>([])
 
   useEffect(() => {
     // Initial load
@@ -40,7 +40,7 @@ export default function DashboardPage() {
       const recent = images
         .slice(-4) // Last 4 images
         .reverse() // Most recent first
-        .map((img, index) => ({
+        .map((img) => ({
           id: img.id,
           name: img.metadata?.title || img.name,
           views: img.views,
@@ -111,7 +111,7 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Good morning, John! 👋</h1>
           <p className="mt-2" style={{ color: 'var(--text-tertiary)' }}>
-            You have {stats.totalImages - stats.liveImages} images pending review and ${stats.totalEarnings.toFixed(2)} total earnings.
+            You have {stats.pendingImages} images pending review and ${stats.totalEarnings.toFixed(2)} total earnings.
           </p>
         </div>
         <motion.button
@@ -336,7 +336,7 @@ export default function DashboardPage() {
                   Collections
                 </dt>
                 <dd className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                  {stats.collections}
+                  0
                 </dd>
               </dl>
             </div>

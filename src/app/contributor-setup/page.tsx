@@ -330,7 +330,7 @@ export default function ContributorSetupPage() {
                     }}
                   />
                   <div className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
-                    <span>I agree to Alamy's </span>
+                    <span>I agree to Alamy&apos;s </span>
                     <a href="#" className="underline" style={{ color: 'var(--text-brand)' }}>
                       Terms and Conditions
                     </a>
@@ -368,7 +368,7 @@ export default function ContributorSetupPage() {
 
               {/* What's Next Section */}
               <div className="p-4 rounded-lg mb-6" style={{ backgroundColor: 'rgba(0, 255, 123, 0.1)', borderLeft: '4px solid var(--surface-brand)' }}>
-                <h3 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>What's Next?</h3>
+                <h3 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>What&apos;s Next?</h3>
                 <ul className="text-sm space-y-1" style={{ color: 'var(--text-tertiary)' }}>
                   <li>• Complete your profile setup</li>
                   <li>• Upload test images for quality review</li>

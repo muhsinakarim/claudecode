@@ -6,10 +6,12 @@ import { Upload, Plus, Image as ImageIcon, CheckCircle, Clock, X, Edit, Save } f
 import { imageStore } from '../../../lib/imageStore'
 import { notificationStore } from '../../../lib/notificationStore'
 
+type FileStatus = 'uploading' | 'analyzing' | 'completed' | 'submitting' | 'submitted' | 'quality-testing' | 'approved' | 'published'
+
 interface FileWithMetadata extends File {
   id: string
   preview: string
-  status: 'uploading' | 'analyzing' | 'completed' | 'submitting' | 'submitted' | 'quality-testing' | 'approved' | 'published'
+  status: FileStatus
   progress: number
   metadata?: {
     title: string
@@ -229,8 +231,8 @@ export default function UploadPage() {
     
     // Generate contextual metadata based on enhanced analysis
     let category = "General"
-    let baseKeywords = []
-    let baseTags = []
+    let baseKeywords: string[] = []
+    let baseTags: string[] = []
     let titlePrefix = ""
     let captionTheme = ""
     
@@ -627,7 +629,7 @@ export default function UploadPage() {
     ))
   }
 
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: FileStatus) => {
     switch (status) {
       case 'uploading': return 'Uploading...'
       case 'analyzing': return 'AI analyzing image...'
@@ -641,7 +643,7 @@ export default function UploadPage() {
     }
   }
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: FileStatus) => {
     switch (status) {
       case 'uploading':
       case 'analyzing':
@@ -656,6 +658,55 @@ export default function UploadPage() {
         return <CheckCircle className="h-5 w-5 text-green-400" />
       case 'published':
         return <CheckCircle className="h-5 w-5 text-green-500" />
+      default:
+        return null
+    }
+  }
+
+  const renderStatusIndicator = (status: FileStatus) => {
+    switch (status) {
+      case 'completed':
+        return (
+          <div className="flex items-center space-x-2 text-blue-400">
+            <CheckCircle className="h-4 w-4" />
+            <span className="text-sm font-medium">Ready to submit</span>
+          </div>
+        )
+      case 'submitted':
+        return (
+          <div className="flex items-center space-x-2 text-orange-400">
+            <Clock className="h-4 w-4" />
+            <span className="text-sm font-medium">Submitted for review</span>
+          </div>
+        )
+      case 'quality-testing':
+        return (
+          <div className="flex items-center space-x-2 text-orange-400">
+            <Clock className="h-4 w-4" />
+            <span className="text-sm font-medium">Under quality review</span>
+          </div>
+        )
+      case 'approved':
+        return (
+          <div className="flex items-center space-x-2 text-blue-400">
+            <Clock className="h-4 w-4" />
+            <span className="text-sm font-medium">Approved - Content team will publish soon</span>
+          </div>
+        )
+      case 'published':
+        return (
+          <div className="flex items-center space-x-2 text-green-500">
+            <CheckCircle className="h-4 w-4" />
+            <span className="text-sm font-medium">Live and earning!</span>
+          </div>
+        )
+      case 'submitting':
+        return (
+          <div className="flex items-center space-x-2 text-yellow-400">
+            <Clock className="h-4 w-4" />
+            <span className="text-sm font-medium">Submitting...</span>
+          </div>
+        )
       default:
         return null
     }
@@ -1023,42 +1074,7 @@ export default function UploadPage() {
 
                       {/* Status Indicator */}
                       <div className="mt-4 flex items-center justify-center py-2">
-                        {file.status === 'completed' && (
-                          <div className="flex items-center space-x-2 text-blue-400">
-                            <CheckCircle className="h-4 w-4" />
-                            <span className="text-sm font-medium">Ready to submit</span>
-                          </div>
-                        )}
-                        {file.status === 'submitted' && (
-                          <div className="flex items-center space-x-2 text-orange-400">
-                            <Clock className="h-4 w-4" />
-                            <span className="text-sm font-medium">Submitted for review</span>
-                          </div>
-                        )}
-                        {file.status === 'quality-testing' && (
-                          <div className="flex items-center space-x-2 text-orange-400">
-                            <Clock className="h-4 w-4" />
-                            <span className="text-sm font-medium">Under quality review</span>
-                          </div>
-                        )}
-                        {file.status === 'approved' && (
-                          <div className="flex items-center space-x-2 text-blue-400">
-                            <Clock className="h-4 w-4" />
-                            <span className="text-sm font-medium">Approved - Content team will publish soon</span>
-                          </div>
-                        )}
-                        {file.status === 'published' && (
-                          <div className="flex items-center space-x-2 text-green-500">
-                            <CheckCircle className="h-4 w-4" />
-                            <span className="text-sm font-medium">Live and earning!</span>
-                          </div>
-                        )}
-                        {file.status === 'submitting' && (
-                          <div className="flex items-center space-x-2 text-yellow-400">
-                            <Clock className="h-4 w-4" />
-                            <span className="text-sm font-medium">Submitting...</span>
-                          </div>
-                        )}
+                        {renderStatusIndicator(file.status)}
                       </div>
                     </motion.div>
                   )}

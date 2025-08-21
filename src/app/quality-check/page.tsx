@@ -364,9 +364,9 @@ export default function QualityCheckPage() {
               <div className="p-6 rounded-lg mb-6" style={{ backgroundColor: 'rgba(0, 255, 123, 0.1)', border: '1px solid rgba(0, 255, 123, 0.3)' }}>
                 <h3 className="font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Congratulations! Quality Assessment Passed!</h3>
                 <div className="space-y-2 text-sm" style={{ color: 'var(--text-tertiary)' }}>
-                  <p>✅ Your test images meet Alamy's quality standards</p>
+                  <p>✅ Your test images meet Alamy&apos;s quality standards</p>
                   <p>💳 Next step: Add your bank details to receive payments</p>
-                  <p>🎯 Once complete, you'll become a verified contributor</p>
+                  <p>🎯 Once complete, you&apos;ll become a verified contributor</p>
                   <p>💰 Start earning from your photography immediately</p>
                 </div>
               </div>
