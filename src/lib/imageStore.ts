@@ -240,6 +240,46 @@ class ImageStore {
   private notifyListeners() {
     this.listeners.forEach(listener => listener())
   }
+
+  // Utility method to clear all stored data (for cleaning up dummy data)
+  clearAllData() {
+    this.images = []
+    this.persist()
+    this.notifyListeners()
+  }
+
+  // Remove all images that are not live/published
+  keepOnlyLiveImages() {
+    const liveImages = this.images.filter(img => img.status === 'published')
+    const removedCount = this.images.length - liveImages.length
+    this.images = liveImages
+    this.persist()
+    this.notifyListeners()
+    return { kept: liveImages.length, removed: removedCount }
+  }
+
+  // Utility method to get image count by status for debugging
+  getDebugInfo() {
+    return {
+      total: this.images.length,
+      byStatus: {
+        uploading: this.getImagesByStatus('uploading').length,
+        analyzing: this.getImagesByStatus('analyzing').length,
+        completed: this.getImagesByStatus('completed').length,
+        submitting: this.getImagesByStatus('submitting').length,
+        submitted: this.getImagesByStatus('submitted').length,
+        'quality-testing': this.getImagesByStatus('quality-testing').length,
+        approved: this.getImagesByStatus('approved').length,
+        published: this.getImagesByStatus('published').length,
+      },
+      images: this.images.map(img => ({
+        id: img.id,
+        name: img.name,
+        status: img.status,
+        uploadDate: img.uploadDate
+      }))
+    }
+  }
 }
 
 // Global instance

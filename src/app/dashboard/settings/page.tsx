@@ -1,18 +1,97 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { User, Mail, Lock, CreditCard, Bell, Shield, Save, Edit, X } from 'lucide-react'
+import { User, Mail, Lock, CreditCard, Shield, Save, Edit, X } from 'lucide-react'
+
+interface UserData {
+  name: string
+  email: string
+  firstName?: string
+  lastName?: string
+  bio?: string
+}
 
 export default function SettingsPage() {
+  const [user, setUser] = useState<UserData | null>(null)
+  const [isClient, setIsClient] = useState(false)
   const [isEditingProfile, setIsEditingProfile] = useState(false)
   const [isEditingBankDetails, setIsEditingBankDetails] = useState(false)
+  const [profileData, setProfileData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    bio: ''
+  })
   const [bankDetails, setBankDetails] = useState({
-    accountHolderName: 'John Photographer',
-    bankName: 'Chase Bank',
+    accountHolderName: '',
+    bankName: '',
     accountNumber: '•••••••••••2345',
     routingNumber: '•••••••021'
   })
+
+  useEffect(() => {
+    setIsClient(true)
+    if (typeof window !== 'undefined') {
+      const userData = localStorage.getItem('user')
+      if (userData) {
+        const parsedUser = JSON.parse(userData)
+        setUser(parsedUser)
+        // Set profile data from user data
+        setProfileData({
+          firstName: parsedUser.firstName || parsedUser.name?.split(' ')[0] || 'New',
+          lastName: parsedUser.lastName || parsedUser.name?.split(' ')[1] || 'Contributor',
+          email: parsedUser.email || 'contributor@example.com',
+          bio: parsedUser.bio || 'New contributor to the Alamy platform. Excited to share my photography with the world.'
+        })
+        // Set bank details with user's name as default
+        setBankDetails(prev => ({
+          ...prev,
+          accountHolderName: parsedUser.name || 'New Contributor'
+        }))
+      } else {
+        // Default for new users
+        const defaultUser = {
+          name: 'New Contributor',
+          email: 'contributor@example.com'
+        }
+        setUser(defaultUser)
+        setProfileData({
+          firstName: 'New',
+          lastName: 'Contributor', 
+          email: 'contributor@example.com',
+          bio: 'New contributor to the Alamy platform. Excited to share my photography with the world.'
+        })
+        setBankDetails(prev => ({
+          ...prev,
+          accountHolderName: 'New Contributor'
+        }))
+      }
+    }
+  }, [])
+
+  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setProfileData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+  const handleSaveProfile = () => {
+    if (typeof window !== 'undefined') {
+      const updatedUser = {
+        ...user,
+        name: `${profileData.firstName} ${profileData.lastName}`,
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        email: profileData.email,
+        bio: profileData.bio
+      }
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+      setUser(updatedUser)
+    }
+    setIsEditingProfile(false)
+  }
 
   const handleBankDetailsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBankDetails(prev => ({
@@ -22,9 +101,27 @@ export default function SettingsPage() {
   }
 
   const handleSaveBankDetails = () => {
+    if (typeof window !== 'undefined') {
+      const updatedUser = {
+        ...user,
+        bankDetails: bankDetails
+      }
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+    }
     setIsEditingBankDetails(false)
-    // In a real app, you would save to the backend here
-    console.log('Bank details saved:', bankDetails)
+  }
+
+  if (!isClient) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Account Settings</h1>
+          <p className="mt-2" style={{ color: 'var(--text-tertiary)' }}>
+            Loading your account settings...
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -37,76 +134,12 @@ export default function SettingsPage() {
       </div>
 
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Notification Settings */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          id="notifications"
-          className="rounded-2xl shadow-lg p-6" 
-          style={{ 
-            backgroundColor: 'var(--surface-primary)',
-            border: '1px solid var(--border-secondary)'
-          }}
-        >
-          <div className="flex items-center space-x-3 mb-6">
-            <Bell className="h-6 w-6" style={{ color: 'var(--surface-orange)' }} />
-            <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Notification Preferences</h2>
-          </div>
-          
-          <div className="space-y-4">
-            <div 
-              className="flex items-center justify-between p-4 border rounded-lg" 
-              style={{ 
-                borderColor: 'var(--border-tertiary)', 
-                backgroundColor: 'rgba(85, 85, 85, 0.3)',
-                borderRadius: 'var(--radius-4)'
-              }}
-            >
-              <div>
-                <h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>Email Notifications</h3>
-                <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Receive updates about sales and account activity</p>
-              </div>
-              <input type="checkbox" defaultChecked className="w-5 h-5" style={{ accentColor: 'var(--surface-brand)' }} />
-            </div>
-            
-            <div 
-              className="flex items-center justify-between p-4 border rounded-lg" 
-              style={{ 
-                borderColor: 'var(--border-tertiary)', 
-                backgroundColor: 'rgba(85, 85, 85, 0.3)',
-                borderRadius: 'var(--radius-4)'
-              }}
-            >
-              <div>
-                <h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>WhatsApp Notifications</h3>
-                <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Get instant updates on your mobile</p>
-              </div>
-              <input type="checkbox" defaultChecked className="w-5 h-5" style={{ accentColor: 'var(--surface-brand)' }} />
-            </div>
-            
-            <div 
-              className="flex items-center justify-between p-4 border rounded-lg" 
-              style={{ 
-                borderColor: 'var(--border-tertiary)', 
-                backgroundColor: 'rgba(85, 85, 85, 0.3)',
-                borderRadius: 'var(--radius-4)'
-              }}
-            >
-              <div>
-                <h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>Push Notifications</h3>
-                <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Browser notifications for important updates</p>
-              </div>
-              <input type="checkbox" className="w-5 h-5" style={{ accentColor: 'var(--surface-brand)' }} />
-            </div>
-          </div>
-        </motion.div>
 
         {/* Profile Settings */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.1 }}
           id="profile"
           className="rounded-2xl shadow-lg p-6" 
           style={{ 
@@ -149,7 +182,7 @@ export default function SettingsPage() {
                       borderRadius: 'var(--radius-4)'
                     }}
                   >
-                    John
+                    {profileData.firstName}
                   </div>
                 </div>
                 <div>
@@ -162,7 +195,7 @@ export default function SettingsPage() {
                       borderRadius: 'var(--radius-4)'
                     }}
                   >
-                    Photographer
+                    {profileData.lastName}
                   </div>
                 </div>
               </div>
@@ -177,7 +210,7 @@ export default function SettingsPage() {
                     borderRadius: 'var(--radius-4)'
                   }}
                 >
-                  john@example.com
+                  {profileData.email}
                 </div>
               </div>
               
@@ -191,7 +224,7 @@ export default function SettingsPage() {
                     borderRadius: 'var(--radius-4)'
                   }}
                 >
-                  Professional photographer specializing in landscape and street photography. I have been capturing moments for over 10 years and love sharing my work with the world.
+                  {profileData.bio}
                 </div>
               </div>
             </div>
@@ -203,7 +236,9 @@ export default function SettingsPage() {
                   <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>First Name</label>
                   <input 
                     type="text" 
-                    defaultValue="John"
+                    name="firstName"
+                    value={profileData.firstName}
+                    onChange={handleProfileChange}
                     className="w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors" 
                     style={{ 
                       backgroundColor: 'var(--surface-primary)', 
@@ -217,7 +252,9 @@ export default function SettingsPage() {
                   <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Last Name</label>
                   <input 
                     type="text" 
-                    defaultValue="Photographer"
+                    name="lastName"
+                    value={profileData.lastName}
+                    onChange={handleProfileChange}
                     className="w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors" 
                     style={{ 
                       backgroundColor: 'var(--surface-primary)', 
@@ -233,7 +270,9 @@ export default function SettingsPage() {
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Email Address</label>
                 <input 
                   type="email" 
-                  defaultValue="john@example.com"
+                  name="email"
+                  value={profileData.email}
+                  onChange={handleProfileChange}
                   className="w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors" 
                   style={{ 
                     backgroundColor: 'var(--surface-primary)', 
@@ -248,7 +287,9 @@ export default function SettingsPage() {
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Bio</label>
                 <textarea 
                   rows={4}
-                  defaultValue="Professional photographer specializing in landscape and street photography. I have been capturing moments for over 10 years and love sharing my work with the world."
+                  name="bio"
+                  value={profileData.bio}
+                  onChange={handleProfileChange}
                   className="w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors" 
                   style={{ 
                     backgroundColor: 'var(--surface-primary)', 
@@ -261,7 +302,7 @@ export default function SettingsPage() {
 
               <div className="flex items-center space-x-3">
                 <button 
-                  onClick={() => setIsEditingProfile(false)}
+                  onClick={handleSaveProfile}
                   className="px-6 py-3 rounded-lg font-semibold transition-colors flex items-center space-x-2" 
                   style={{ 
                     backgroundColor: 'var(--surface-brand)', 
@@ -295,7 +336,7 @@ export default function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          transition={{ delay: 0.2 }}
           id="bank-details"
           className="rounded-2xl shadow-lg p-6" 
           style={{ 

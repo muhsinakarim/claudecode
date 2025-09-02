@@ -4,9 +4,12 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import FormInput from '../../components/FormInput'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -39,6 +42,17 @@ export default function RegisterPage() {
       const data = await response.json()
 
       if (response.ok) {
+        // Store user info for personalized dashboard (client-side only)
+        if (typeof window !== 'undefined') {
+          const userData = {
+            name: `${formData.firstName} ${formData.lastName}`.trim(),
+            email: formData.email,
+            joinDate: new Date().toISOString(),
+            contributorStatus: 'new' as const
+          }
+          localStorage.setItem('user', JSON.stringify(userData))
+        }
+        
         // Registration complete, redirect to contributor setup
         router.push('/contributor-setup')
       } else {
@@ -87,95 +101,94 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-                Email Address
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                required
-                value={formData.email}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormInput
+                label="First Name"
+                name="firstName"
+                type="text"
+                value={formData.firstName}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border rounded-lg focus:outline-none transition-colors"
-                style={{ 
-                  backgroundColor: 'var(--surface-primary)', 
-                  borderColor: 'var(--border-tertiary)', 
-                  color: 'var(--text-primary)',
-                  borderRadius: 'var(--radius-4)'
+                placeholder="First name"
+                required
+                validation={{
+                  minLength: 2,
+                  message: "First name must be at least 2 characters"
                 }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--border-brand)'
-                  e.target.style.boxShadow = '0 0 0 3px rgba(0, 255, 123, 0.1)'
+              />
+              <FormInput
+                label="Last Name"
+                name="lastName"
+                type="text"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Last name"
+                required
+                validation={{
+                  minLength: 2,
+                  message: "Last name must be at least 2 characters"
                 }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'var(--border-tertiary)'
-                  e.target.style.boxShadow = 'none'
-                }}
-                placeholder="Enter your email"
               />
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border rounded-lg focus:outline-none transition-colors"
-                style={{ 
-                  backgroundColor: 'var(--surface-primary)', 
-                  borderColor: 'var(--border-tertiary)', 
-                  color: 'var(--text-primary)',
-                  borderRadius: 'var(--radius-4)'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--border-brand)'
-                  e.target.style.boxShadow = '0 0 0 3px rgba(0, 255, 123, 0.1)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'var(--border-tertiary)'
-                  e.target.style.boxShadow = 'none'
-                }}
-                placeholder="Create a password"
-              />
-            </div>
+            <FormInput
+              label="Email Address"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter your email"
+              required
+              validation={{
+                pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Please enter a valid email address"
+              }}
+            />
 
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                required
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border rounded-lg focus:outline-none transition-colors"
-                style={{ 
-                  backgroundColor: 'var(--surface-primary)', 
-                  borderColor: 'var(--border-tertiary)', 
-                  color: 'var(--text-primary)',
-                  borderRadius: 'var(--radius-4)'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--border-brand)'
-                  e.target.style.boxShadow = '0 0 0 3px rgba(0, 255, 123, 0.1)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'var(--border-tertiary)'
-                  e.target.style.boxShadow = 'none'
-                }}
-                placeholder="Confirm your password"
-              />
-            </div>
+            <FormInput
+              label="Password"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Create a password"
+              required
+              showPasswordToggle
+              validation={{
+                validator: (value) => {
+                  const hasMinLength = value.length >= 8
+                  const hasUppercase = /[A-Z]/.test(value)
+                  const hasLowercase = /[a-z]/.test(value)
+                  const hasNumber = /[0-9]/.test(value)
+                  const hasSpecial = /[^A-Za-z0-9]/.test(value)
+                  
+                  const score = [hasMinLength, hasUppercase, hasLowercase, hasNumber, hasSpecial].filter(Boolean).length
+                  
+                  if (score < 3) {
+                    return { valid: false, message: "Password is too weak" }
+                  }
+                  return { valid: true }
+                }
+              }}
+            />
+
+            <FormInput
+              label="Confirm Password"
+              name="confirmPassword"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Confirm your password"
+              required
+              showPasswordToggle
+              validation={{
+                validator: (value) => {
+                  if (value !== formData.password) {
+                    return { valid: false, message: "Passwords do not match" }
+                  }
+                  return { valid: true, message: "Passwords match" }
+                }
+              }}
+            />
 
             <motion.button
               type="submit"

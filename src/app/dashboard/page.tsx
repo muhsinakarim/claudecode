@@ -16,8 +16,18 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { imageStore } from '../../lib/imageStore'
+import { DashboardSkeleton } from '../../components/Skeleton'
+
+interface User {
+  name: string
+  email: string
+  joinDate: string
+  contributorStatus: 'new' | 'pending' | 'approved' | 'verified'
+}
 
 export default function DashboardPage() {
+  const [user, setUser] = useState<User | null>(null)
+  const [isClient, setIsClient] = useState(false)
   const [stats, setStats] = useState({
     totalImages: 0,
     publishedImages: 0,
@@ -28,15 +38,89 @@ export default function DashboardPage() {
     totalDownloads: 0
   })
   const [recentImages, setRecentImages] = useState<Array<{id: string, name: string, views: number, downloads: number, status: string, earnings: number, trend: string, uploadDate: string}>>([])
+  const [totalImages, setTotalImages] = useState(0)
 
   useEffect(() => {
+    // Set client flag first
+    setIsClient(true)
+    
+    // Get user information (simplified, server-safe approach)
+    const getUserInfo = () => {
+      // Default user for everyone initially
+      const defaultUser: User = {
+        name: 'Contributor',
+        email: 'contributor@example.com',
+        joinDate: new Date().toISOString(),
+        contributorStatus: 'new' as const
+      }
+      
+      // Only access localStorage after component mounts (client-side)
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          try {
+            const storedUser = localStorage.getItem('user')
+            if (storedUser) {
+              const userData = JSON.parse(storedUser)
+              setUser(userData)
+            } else {
+              // Check if this is first visit
+              const isNewUser = !localStorage.getItem('hasVisitedDashboard')
+              const newUser: User = {
+                name: isNewUser ? 'New Contributor' : 'Contributor',
+                email: 'contributor@example.com',
+                joinDate: new Date().toISOString(),
+                contributorStatus: 'new' as const
+              }
+              
+              if (isNewUser) {
+                localStorage.setItem('hasVisitedDashboard', 'true')
+              }
+              
+              setUser(newUser)
+            }
+          } catch (error) {
+            console.error('Error getting user info:', error)
+            setUser(defaultUser)
+          }
+        }, 100) // Small delay to ensure client-side rendering
+      }
+      
+      setUser(defaultUser)
+      return defaultUser
+    }
+
     // Initial load
     const updateStats = () => {
+      const currentUser = getUserInfo()
+      
+      // For truly new users (no images uploaded), show zero stats
+      if (currentUser?.contributorStatus === 'new' && typeof window !== 'undefined') {
+        const hasAnyImages = localStorage.getItem('hasUploadedImages') === 'true'
+        
+        if (!hasAnyImages) {
+          // New user with no activity - all zeros
+          setStats({
+            totalImages: 0,
+            publishedImages: 0,
+            approvedImages: 0,
+            pendingImages: 0,
+            totalEarnings: 0,
+            totalViews: 0,
+            totalDownloads: 0
+          })
+          setTotalImages(0)
+          setRecentImages([])
+          return
+        }
+      }
+      
+      // Existing users or users with uploaded images - show real data
       const newStats = imageStore.getStats()
       setStats(newStats)
       
       // Get recent images for the recent activity section
       const images = imageStore.getImages()
+      setTotalImages(images.length) // Track total number of images
       const recent = images
         .slice(-4) // Last 4 images
         .reverse() // Most recent first
@@ -76,42 +160,136 @@ export default function DashboardPage() {
   }
 
 
-  // Performance insights based on real data
+  // Get personalized greeting based on time of day and user status
+  const getPersonalizedGreeting = () => {
+    if (!isClient || !user) {
+      return 'Welcome to Your Dashboard!'
+    }
+    
+    const hour = new Date().getHours()
+    const timeOfDay = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'
+    const userName = user.name || 'Contributor'
+    
+    if (user.contributorStatus === 'new') {
+      return `Welcome to Alamy, ${userName}!`
+    } else if (user.contributorStatus === 'verified') {
+      return `Good ${timeOfDay}, ${userName}!`
+    } else {
+      return `Good ${timeOfDay}, ${userName}!`
+    }
+  }
+
+  // Enhanced performance insights based on user status and real data
   const insights = [
+    // New user welcome insight
+    ...(user?.contributorStatus === 'new' && stats.totalImages === 0 ? [{
+      type: 'info' as const,
+      title: 'Welcome to Your Contributor Journey!',
+      message: 'Get started by uploading your first high-quality images. Our AI will help with metadata to maximize your earning potential.',
+      action: 'Upload your first images'
+    }] : []),
+    
+    // First-time upload completed
+    ...(user?.contributorStatus === 'pending' && stats.totalImages > 0 && stats.publishedImages === 0 ? [{
+      type: 'warning' as const,
+      title: 'Great Start! Quality Review in Progress',
+      message: `You&apos;ve uploaded ${stats.totalImages} image${stats.totalImages > 1 ? 's' : ''}. Our quality team is reviewing them now.`,
+      action: 'Check review status'
+    }] : []),
+    
+    // Quality approved
     ...(stats.approvedImages > 0 ? [{ 
       type: 'success' as const, 
-      title: 'Quality Approved!', 
-      message: `${stats.approvedImages} image${stats.approvedImages > 1 ? 's' : ''} approved and awaiting publication by our content team`,
+      title: 'Congratulations! Quality Approved!', 
+      message: `${stats.approvedImages} image${stats.approvedImages > 1 ? 's have' : ' has'} passed quality review and will be published soon.`,
       action: 'View approved images'
     }] : []),
+    
+    // Images live and earning
+    ...(user?.contributorStatus === 'verified' && stats.publishedImages > 0 ? [{
+      type: 'success' as const,
+      title: 'You&apos;re Earning! 💰',
+      message: `${stats.publishedImages} image${stats.publishedImages > 1 ? 's are' : ' is'} live and generating income. Keep uploading for more earnings!`,
+      action: 'View earnings details'
+    }] : []),
+    
+    // Pending review
     ...(stats.pendingImages > 0 ? [{ 
       type: 'warning' as const, 
       title: 'Review in Progress', 
-      message: `${stats.pendingImages} image${stats.pendingImages > 1 ? 's are' : ' is'} under quality review`,
+      message: `${stats.pendingImages} image${stats.pendingImages > 1 ? 's are' : ' is'} currently under quality review.`,
       action: 'Check submission status'
     }] : []),
-    ...(stats.totalImages === 0 ? [{ 
+    
+    // Performance insights for active contributors
+    ...(stats.totalViews > 0 ? [{
+      type: 'info' as const,
+      title: 'Your View Performance',
+      message: `Your images have been viewed ${stats.totalViews.toLocaleString()} times. Views are up 8.2% from last month!`,
+      action: 'See detailed analytics'
+    }] : []),
+    
+    // Download rate insight
+    ...(stats.totalDownloads > 0 && stats.totalViews > 0 ? [{
+      type: stats.totalDownloads / stats.totalViews > 0.02 ? 'success' as const : 'info' as const,
+      title: 'Download Conversion Rate',
+      message: `${((stats.totalDownloads / stats.totalViews) * 100).toFixed(1)}% of viewers download your images. ${stats.totalDownloads / stats.totalViews > 0.02 ? 'Excellent conversion!' : 'Room for improvement with better keywords.'}`,
+      action: 'Optimize metadata'
+    }] : []),
+    
+    // Earnings performance
+    ...(stats.totalEarnings > 0 ? [{
+      type: 'success' as const,
+      title: 'Earnings Growth',
+      message: `You've earned $${stats.totalEarnings.toFixed(2)} total. Earnings are up 12.5% from last month!`,
+      action: 'View payout details'
+    }] : []),
+    
+    // Encourage more uploads for established users
+    ...(user?.contributorStatus === 'verified' && stats.totalImages < 10 ? [{
+      type: 'info' as const,
+      title: 'Grow Your Portfolio',
+      message: 'Upload more diverse, high-quality images to increase your earning potential and reach more customers.',
+      action: 'Upload more images'
+    }] : []),
+    
+    // Weekly upload goal
+    ...(stats.totalImages > 0 ? [{
+      type: 'info' as const,
+      title: 'Weekly Upload Goal',
+      message: 'Contributors who upload 5+ images per week earn 3x more. You have 3 uploads this week.',
+      action: 'Upload more this week'
+    }] : []),
+    
+    // Default fallback for completely new users
+    ...(stats.totalImages === 0 && !user ? [{ 
       type: 'info' as const, 
       title: 'Start Your Journey', 
-      message: 'Upload your first images to begin earning',
-      action: 'Upload images now'
-    }] : []),
-    ...(stats.totalImages > 0 && stats.publishedImages === 0 ? [{ 
-      type: 'info' as const, 
-      title: 'Almost There!', 
-      message: 'Complete the quality review process to start earning',
-      action: 'View upload guidelines'
+      message: 'Upload your first images to begin earning from your photography.',
+      action: 'Get started now'
     }] : [])
   ]
+
+  // Show enhanced loading state during hydration
+  if (!isClient) {
+    return <DashboardSkeleton />
+  }
 
   return (
     <div className="space-y-8">
       {/* Header with Quick Actions */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Good morning, John! 👋</h1>
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            {getPersonalizedGreeting()}
+          </h1>
           <p className="mt-2" style={{ color: 'var(--text-tertiary)' }}>
-            You have {stats.pendingImages} images pending review and ${stats.totalEarnings.toFixed(2)} total earnings.
+            {user?.contributorStatus === 'new' && stats.totalImages === 0 
+              ? 'Ready to start your photography journey? Upload your first images to begin earning!'
+              : user?.contributorStatus === 'verified' 
+                ? `You have ${stats.pendingImages} images pending review and $${stats.totalEarnings.toFixed(2)} total earnings.`
+                : `You have ${stats.pendingImages} images pending review and $${stats.totalEarnings.toFixed(2)} total earnings.`
+            }
           </p>
         </div>
         <motion.button
@@ -214,8 +392,14 @@ export default function DashboardPage() {
             }}
           >
             <div className="text-sm">
-              <span className="font-medium" style={{ color: 'var(--surface-brand)' }}>+12.5%</span>
-              <span style={{ color: 'var(--text-tertiary)' }}> from last month</span>
+              {stats.totalEarnings > 0 ? (
+                <>
+                  <span className="font-medium" style={{ color: 'var(--surface-brand)' }}>+12.5%</span>
+                  <span style={{ color: 'var(--text-tertiary)' }}> from last month</span>
+                </>
+              ) : (
+                <span style={{ color: 'var(--text-tertiary)' }}>Start earning by uploading images</span>
+              )}
             </div>
           </div>
         </motion.div>
@@ -259,8 +443,14 @@ export default function DashboardPage() {
             }}
           >
             <div className="text-sm">
-              <span className="font-medium" style={{ color: 'var(--surface-brand)' }}>+8.2%</span>
-              <span style={{ color: 'var(--text-tertiary)' }}> from last month</span>
+              {stats.totalViews > 0 ? (
+                <>
+                  <span className="font-medium" style={{ color: 'var(--surface-brand)' }}>+8.2%</span>
+                  <span style={{ color: 'var(--text-tertiary)' }}> from last month</span>
+                </>
+              ) : (
+                <span style={{ color: 'var(--text-tertiary)' }}>Views will show after upload</span>
+              )}
             </div>
           </div>
         </motion.div>
@@ -304,8 +494,14 @@ export default function DashboardPage() {
             }}
           >
             <div className="text-sm">
-              <span className="font-medium" style={{ color: 'var(--surface-brand)' }}>+15.3%</span>
-              <span style={{ color: 'var(--text-tertiary)' }}> from last month</span>
+              {stats.totalDownloads > 0 ? (
+                <>
+                  <span className="font-medium" style={{ color: 'var(--surface-brand)' }}>+15.3%</span>
+                  <span style={{ color: 'var(--text-tertiary)' }}> from last month</span>
+                </>
+              ) : (
+                <span style={{ color: 'var(--text-tertiary)' }}>Downloads will show after sales</span>
+              )}
             </div>
           </div>
         </motion.div>
@@ -349,8 +545,7 @@ export default function DashboardPage() {
             }}
           >
             <div className="text-sm">
-              <span className="font-medium" style={{ color: 'var(--surface-brand)' }}>+5.7%</span>
-              <span style={{ color: 'var(--text-tertiary)' }}> from last month</span>
+              <span style={{ color: 'var(--text-tertiary)' }}>Collections will grow over time</span>
             </div>
           </div>
         </motion.div>
@@ -381,7 +576,7 @@ export default function DashboardPage() {
                   Monthly Goal
                 </dt>
                 <dd className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                  73%
+                  {stats.totalEarnings > 0 ? '73%' : '0%'}
                 </dd>
               </dl>
             </div>
@@ -394,8 +589,14 @@ export default function DashboardPage() {
             }}
           >
             <div className="text-sm">
-              <span className="font-medium" style={{ color: 'var(--surface-brand)' }}>$1,712</span>
-              <span style={{ color: 'var(--text-tertiary)' }}> of $2,500 goal</span>
+              {stats.totalEarnings > 0 ? (
+                <>
+                  <span className="font-medium" style={{ color: 'var(--surface-brand)' }}>$1,712</span>
+                  <span style={{ color: 'var(--text-tertiary)' }}> of $2,500 goal</span>
+                </>
+              ) : (
+                <span style={{ color: 'var(--text-tertiary)' }}>Set goals after first earnings</span>
+              )}
             </div>
           </div>
         </motion.div>
@@ -592,24 +793,28 @@ export default function DashboardPage() {
             ))}
           </div>
           
-          <div className="mt-6 text-center">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="font-medium hover:underline"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              View All Images →
-            </motion.button>
-          </div>
+          {totalImages > 4 && (
+            <div className="mt-6 text-center">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="font-medium hover:underline"
+                style={{ color: 'var(--text-primary)' }}
+                onClick={() => window.location.href = '/dashboard/images'}
+              >
+                View All Images →
+              </motion.button>
+            </div>
+          )}
         </div>
       </motion.div>
+
 
       {/* Tips Section */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.9 }}
+        transition={{ delay: 0.8 }}
         className="p-6"
         style={{ 
           backgroundColor: 'var(--surface-primary)',
@@ -617,7 +822,9 @@ export default function DashboardPage() {
           borderRadius: 'var(--radius-4)'
         }}
       >
-        <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Tips to Boost Your Sales</h2>
+        <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+          {user?.contributorStatus === 'new' ? 'Getting Started Tips' : 'Tips to Boost Your Sales'}
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h3 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Upload Consistently</h3>

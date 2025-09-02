@@ -1,0 +1,11 @@
+{
+  "buildCommand": "prisma generate && npm run build",
+  "env": {
+    "JWT_SECRET": "your-super-secret-jwt-key-for-production-123456789"
+  },
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 10
+    }
+  }
+}

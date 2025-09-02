@@ -132,11 +132,18 @@ export default function UploadPage() {
         grayPixels++
       }
       
-      // Skin tone detection (basic heuristic)
+      // Improved skin tone detection (much stricter criteria)
       const isSkinTone = (
-        (r > 95 && g > 40 && b > 20) &&
-        (Math.max(r, g, b) - Math.min(r, g, b) > 15) &&
-        (Math.abs(r - g) > 15) && (r > g) && (r > b)
+        // More restrictive ranges for actual skin tones
+        (r >= 120 && r <= 255 && g >= 80 && g <= 220 && b >= 60 && b <= 200) &&
+        // Red must be dominant but not too much
+        (r > g && r > b) &&
+        // Reasonable differences between channels
+        (r - g >= 10 && r - g <= 80) &&
+        (r - b >= 15 && r - b <= 100) &&
+        (g - b >= 0 && g - b <= 50) &&
+        // Must have reasonable saturation (not gray)
+        (Math.max(r, g, b) - Math.min(r, g, b) > 25)
       )
       if (isSkinTone) {
         skinTonePixels.push({ r, g, b, index: i / 4 })
@@ -172,11 +179,37 @@ export default function UploadPage() {
     const isVibrant = saturatedRatio > 0.4
     const isMuted = saturatedRatio < 0.2
     
-    // Object and people detection
+    // Object and people detection (extremely strict thresholds + additional validation)
     const skinToneRatio = skinTonePixels.length / pixels
-    const hasMultiplePeople = skinToneRatio > 0.15 // High skin tone presence
-    const hasSinglePerson = skinToneRatio > 0.05 && skinToneRatio <= 0.15
-    const hasMinimalPeople = skinToneRatio > 0.01 && skinToneRatio <= 0.05
+    
+    // Additional validation: check for spatial distribution and realistic face/body proportions
+    const hasRealisticSkinDistribution = () => {
+      if (skinTonePixels.length < pixels * 0.05) return false // Too few skin pixels
+      
+      // Check if skin pixels are reasonably clustered (not scattered)
+      // Simple heuristic: skin pixels should have some spatial coherence
+      const width = 224 // Canvas width
+      const clusters = new Set()
+      
+      skinTonePixels.forEach(pixel => {
+        const row = Math.floor(pixel.index / width)
+        const col = pixel.index % width
+        // Group into 8x8 pixel regions
+        const clusterKey = `${Math.floor(row/8)}-${Math.floor(col/8)}`
+        clusters.add(clusterKey)
+      })
+      
+      // Too many scattered clusters = probably not people
+      if (clusters.size > skinTonePixels.length / 20) return false
+      
+      return true
+    }
+    
+    // Ultra-conservative people detection with additional validation
+    const skinDistributionValid = hasRealisticSkinDistribution()
+    const hasMultiplePeople = skinToneRatio > 0.35 && skinDistributionValid // Extremely high skin tone presence required
+    const hasSinglePerson = skinToneRatio > 0.20 && skinToneRatio <= 0.35 && skinDistributionValid // Very substantial skin presence
+    const hasMinimalPeople = skinToneRatio > 0.10 && skinToneRatio <= 0.20 && skinDistributionValid // Some skin presence
     
     // Simple pattern detection for common objects
     const hasBlueWater = blueRatio > 0.3 && avgB > 120
@@ -194,6 +227,7 @@ export default function UploadPage() {
       redRatio, greenRatio, blueRatio,
       hasMultiplePeople, hasSinglePerson, hasMinimalPeople,
       hasBlueWater, hasGreenVegetation, hasGrayStructures, hasBrightSky, hasFood,
+      skinToneRatio, skinTonePixels, pixels, skinDistributionValid,
       fileName
     })
   }
@@ -208,14 +242,17 @@ export default function UploadPage() {
     hasMultiplePeople: boolean, hasSinglePerson: boolean, hasMinimalPeople: boolean,
     hasBlueWater: boolean, hasGreenVegetation: boolean, hasGrayStructures: boolean, 
     hasBrightSky: boolean, hasFood: boolean,
+    skinToneRatio: number, skinTonePixels: any[], pixels: number, skinDistributionValid: boolean,
     fileName: string
   }): FileWithMetadata['metadata'] => {
     const { 
       avgBrightness, isWarmToned, isCoolToned, isNaturalGreen,
       isHighContrast, isLowKey, isHighKey, isVibrant, isMuted,
       darkRatio, lightRatio, saturatedRatio,
+      redRatio, greenRatio, blueRatio,
       hasMultiplePeople, hasSinglePerson, hasMinimalPeople,
       hasBlueWater, hasGreenVegetation, hasGrayStructures, hasBrightSky, hasFood,
+      skinToneRatio, skinTonePixels, pixels, skinDistributionValid,
       fileName
     } = analysis
     
@@ -223,10 +260,25 @@ export default function UploadPage() {
     const randomSeed = Math.random()
     
     // Debug logging to see detection results
-    console.log('Analysis results:', {
-      hasMultiplePeople, hasSinglePerson, hasMinimalPeople,
-      hasBlueWater, hasGreenVegetation, hasGrayStructures, hasFood,
-      isWarmToned, isCoolToned, isNaturalGreen, fileName
+    console.log('🔍 AI Image Analysis Results for:', fileName, {
+      '👥 People Detection': { 
+        skinToneRatio: (skinToneRatio * 100).toFixed(2) + '%', 
+        skinPixelsFound: skinTonePixels.length,
+        totalPixels: pixels,
+        distributionValid: skinDistributionValid,
+        hasMultiplePeople, 
+        hasSinglePerson, 
+        hasMinimalPeople,
+        reason: skinToneRatio < 0.10 ? 'Too few skin pixels' : 
+               !skinDistributionValid ? 'Skin pixels too scattered/unrealistic' : 
+               'Passed all checks'
+      },
+      '🌊 Water/Ocean': { detected: hasBlueWater, blueRatio: (blueRatio * 100).toFixed(1) + '%' },
+      '🌿 Vegetation': { detected: hasGreenVegetation, greenRatio: (greenRatio * 100).toFixed(1) + '%' }, 
+      '🏗️ Structures': hasGrayStructures,
+      '🍎 Food': hasFood,
+      '🌡️ Color Tone': { isWarmToned, isCoolToned, isNaturalGreen },
+      '🎨 Composition': { avgBrightness: avgBrightness.toFixed(1), saturatedRatio: (saturatedRatio * 100).toFixed(1) + '%' }
     })
     
     // Generate contextual metadata based on enhanced analysis
@@ -400,13 +452,22 @@ export default function UploadPage() {
     const allKeywords = [...baseKeywords, ...commonKeywords.slice(0, 3), ...selectedAdditional]
     const allTags = [...baseTags, "photography", "stock", randomSeed > 0.5 ? "professional" : "creative"]
     
-    return {
+    const result = {
       title,
       caption,
       keywords: allKeywords.slice(0, 10), // Limit to 10 keywords
       tags: allTags.slice(0, 6), // Limit to 6 tags  
       category
     }
+    
+    console.log('✅ AI Generated Metadata for', fileName + ':', {
+      '📝 Title': result.title,
+      '📖 Category': result.category,
+      '🏷️ Keywords': result.keywords.join(', '),
+      '🔖 Tags': result.tags.join(', ')
+    })
+    
+    return result
   }
 
   const generateFallbackMetadata = (fileName: string): FileWithMetadata['metadata'] => {
@@ -528,6 +589,11 @@ export default function UploadPage() {
       status: file.status,
       progress: file.progress
     })))
+    
+    // Mark that user has uploaded images
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('hasUploadedImages', 'true')
+    }
     
     // Start processing each file
     processedFiles.forEach(file => {
@@ -908,10 +974,18 @@ export default function UploadPage() {
                         <div className="bg-gradient-to-r from-green-500/10 to-blue-500/10 border-b border-gray-700/30 px-4 py-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
-                              <div className="w-6 h-6 rounded-lg bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center">
+                              <motion.div 
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                                className="w-6 h-6 rounded-lg bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center"
+                              >
                                 <span className="text-white font-bold text-xs">AI</span>
+                              </motion.div>
+                              <div>
+                                <h4 className="text-sm font-semibold text-gray-100">AI-Analyzed Metadata</h4>
+                                <p className="text-xs text-green-400">✓ Image analysis complete</p>
                               </div>
-                              <h4 className="text-sm font-semibold text-gray-100">AI Metadata</h4>
                             </div>
                             <button
                               onClick={() => toggleMetadataEdit(file.id)}

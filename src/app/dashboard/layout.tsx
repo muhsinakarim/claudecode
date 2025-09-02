@@ -17,7 +17,6 @@ import {
   ChevronRight
 } from 'lucide-react'
 import AlamyLogo from '../../components/AlamyLogo'
-import NotificationBell from '../../components/NotificationBell'
 
 // Sidebar Toggle Component
 const SidebarToggle = ({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: () => void }) => {
@@ -256,9 +255,8 @@ export default function DashboardLayout({
             <Menu className="h-6 w-6" />
           </button>
           
-          {/* Notification Bell */}
+          {/* Removed notification bell */}
           <div className="flex items-center">
-            <NotificationBell />
           </div>
         </div>
 
