@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { DollarSign, TrendingUp, Calendar, Download, Eye } from 'lucide-react'
+import { DollarSign, TrendingUp, Calendar, Eye } from 'lucide-react'
 import { imageStore } from '../../../lib/imageStore'
 
 export default function SalesPage() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ name?: string; email?: string } | null>(null)
   const [isClient, setIsClient] = useState(false)
-  const [imageStats, setImageStats] = useState<any>(null)
+  const [imageStats, setImageStats] = useState<{ totalEarnings: number; totalDownloads: number } | null>(null)
 
   useEffect(() => {
     setIsClient(true)

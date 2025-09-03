@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Eye, Download, Heart, MoreHorizontal, CheckCircle, Clock, AlertCircle, Upload, Search, Play, TrendingUp } from 'lucide-react'
+import { Eye, Download, Heart, MoreHorizontal, Clock, Upload, TrendingUp } from 'lucide-react'
 import { imageStore } from '../../../lib/imageStore'
 
 interface ImageData {
@@ -94,7 +94,7 @@ export default function ImagesPage() {
     return `uploaded ${diffDays} days ago`
   }
 
-  const approvedCount = images.filter(img => img.status === 'approved').length
+  // const approvedCount = images.filter(img => img.status === 'approved').length
 
   return (
     <div className="space-y-8">

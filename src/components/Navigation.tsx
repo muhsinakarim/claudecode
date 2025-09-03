@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 
 interface NavigationProps {
   isLoggedIn: boolean
@@ -12,7 +12,7 @@ interface NavigationProps {
 const Navigation = ({ isLoggedIn }: NavigationProps) => {
   const pathname = usePathname()
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ name?: string } | null>(null)
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {

@@ -242,7 +242,7 @@ export default function UploadPage() {
     hasMultiplePeople: boolean, hasSinglePerson: boolean, hasMinimalPeople: boolean,
     hasBlueWater: boolean, hasGreenVegetation: boolean, hasGrayStructures: boolean, 
     hasBrightSky: boolean, hasFood: boolean,
-    skinToneRatio: number, skinTonePixels: any[], pixels: number, skinDistributionValid: boolean,
+    skinToneRatio: number, skinTonePixels: { r: number; g: number; b: number; index: number }[], pixels: number, skinDistributionValid: boolean,
     fileName: string
   }): FileWithMetadata['metadata'] => {
     const { 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { User, Mail, Lock, CreditCard, Shield, Save, Edit, X } from 'lucide-react'
+import { User, Lock, CreditCard, Shield, Save, Edit, X } from 'lucide-react'
 
 interface UserData {
   name: string
