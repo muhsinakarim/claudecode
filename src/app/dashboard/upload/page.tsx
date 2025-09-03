@@ -97,8 +97,8 @@ export default function UploadPage() {
     let saturatedPixels = 0, grayPixels = 0
     
     const colorRegions = new Map()
-    const skinTonePixels = []
-    const objectPatterns = []
+    const skinTonePixels: { r: number; g: number; b: number; index: number }[] = []
+    // const objectPatterns = []
     
     // Enhanced pixel analysis with pattern detection
     for (let i = 0; i < data.length; i += 4) {
@@ -249,9 +249,12 @@ export default function UploadPage() {
       avgBrightness, isWarmToned, isCoolToned, isNaturalGreen,
       isHighContrast, isLowKey, isHighKey, isVibrant, isMuted,
       darkRatio, lightRatio, saturatedRatio,
-      redRatio, greenRatio, blueRatio,
+      // redRatio, 
+      greenRatio, blueRatio,
       hasMultiplePeople, hasSinglePerson, hasMinimalPeople,
-      hasBlueWater, hasGreenVegetation, hasGrayStructures, hasBrightSky, hasFood,
+      hasBlueWater, hasGreenVegetation, hasGrayStructures, 
+      // hasBrightSky, 
+      hasFood,
       skinToneRatio, skinTonePixels, pixels, skinDistributionValid,
       fileName
     } = analysis

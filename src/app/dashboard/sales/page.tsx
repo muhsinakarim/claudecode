@@ -6,18 +6,18 @@ import { DollarSign, TrendingUp, Calendar, Eye } from 'lucide-react'
 import { imageStore } from '../../../lib/imageStore'
 
 export default function SalesPage() {
-  const [user, setUser] = useState<{ name?: string; email?: string } | null>(null)
+  // const [user, setUser] = useState<{ name?: string; email?: string } | null>(null)
   const [isClient, setIsClient] = useState(false)
   const [imageStats, setImageStats] = useState<{ totalEarnings: number; totalDownloads: number } | null>(null)
 
   useEffect(() => {
     setIsClient(true)
-    if (typeof window !== 'undefined') {
-      const userData = localStorage.getItem('user')
-      if (userData) {
-        setUser(JSON.parse(userData))
-      }
-    }
+    // if (typeof window !== 'undefined') {
+    //   const userData = localStorage.getItem('user')
+    //   if (userData) {
+    //     setUser(JSON.parse(userData))
+    //   }
+    // }
 
     // Get real image stats
     const updateStats = () => {
