@@ -30,7 +30,9 @@ export default function UploadPage() {
 
   useEffect(() => {
     // Send a welcome notification on first visit to upload page
-    const hasSeenUploadWelcome = localStorage.getItem('hasSeenUploadWelcome')
+    const currentUserId = imageStore.getCurrentUser()
+    const welcomeKey = `hasSeenUploadWelcome-${currentUserId}`
+    const hasSeenUploadWelcome = localStorage.getItem(welcomeKey)
     if (!hasSeenUploadWelcome) {
       setTimeout(() => {
         notificationStore.createNotification({
@@ -39,7 +41,7 @@ export default function UploadPage() {
           message: 'Ready to start earning from your photography? Upload up to 5 images and our AI will help generate metadata for better discoverability.',
           channels: ['email']
         })
-        localStorage.setItem('hasSeenUploadWelcome', 'true')
+        localStorage.setItem(welcomeKey, 'true')
       }, 2000) // Delay to avoid overwhelming the user
     }
   }, [])
@@ -784,6 +786,10 @@ export default function UploadPage() {
   const submitAllImages = async () => {
     const completedImages = files.filter(f => f.status === 'completed')
     if (completedImages.length === 0) return
+
+    // Mark that this user has uploaded images
+    const currentUserId = imageStore.getCurrentUser()
+    localStorage.setItem(`hasUploadedImages-${currentUserId}`, 'true')
 
     // Set all completed images to submitting status
     setFiles(prev => prev.map(f => 

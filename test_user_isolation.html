@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test User Isolation</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: white; }
+        .user-section { border: 1px solid #444; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        button { background: #00ff66; color: black; border: none; padding: 10px 20px; margin: 5px; cursor: pointer; border-radius: 4px; }
+        .debug-info { background: #333; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px; }
+        .clear { background: #ff4444; color: white; }
+    </style>
+</head>
+<body>
+    <h1>User Isolation Test</h1>
+    <p>This test simulates different users to verify data isolation works correctly.</p>
+
+    <div class="user-section">
+        <h2>User A (Session ID Simulation)</h2>
+        <button onclick="setUser('userA')">Switch to User A</button>
+        <button onclick="addTestData('userA')">Add Test Images for User A</button>
+        <button onclick="showUserData('userA')">Show User A Data</button>
+        <div id="userA-data" class="debug-info"></div>
+    </div>
+
+    <div class="user-section">
+        <h2>User B (Session ID Simulation)</h2>
+        <button onclick="setUser('userB')">Switch to User B</button>
+        <button onclick="addTestData('userB')">Add Test Images for User B</button>
+        <button onclick="showUserData('userB')">Show User B Data</button>
+        <div id="userB-data" class="debug-info"></div>
+    </div>
+
+    <div class="user-section">
+        <h2>Controls</h2>
+        <button onclick="clearAllData()" class="clear">Clear All Data</button>
+        <button onclick="showStorageKeys()">Show Storage Keys</button>
+        <div id="storage-keys" class="debug-info"></div>
+    </div>
+
+    <script>
+        function setUser(userId) {
+            sessionStorage.setItem('session_id', userId);
+            console.log(`Switched to user: ${userId}`);
+            showUserData(userId);
+        }
+
+        function addTestData(userId) {
+            setUser(userId);
+            const testImages = [
+                {
+                    id: `${userId}_img_1`,
+                    name: `${userId} Test Image 1`,
+                    preview: 'test_preview_1.jpg',
+                    status: 'published',
+                    progress: 100,
+                    uploadDate: new Date().toISOString(),
+                    views: Math.floor(Math.random() * 1000),
+                    downloads: Math.floor(Math.random() * 50),
+                    earnings: Math.floor(Math.random() * 100)
+                },
+                {
+                    id: `${userId}_img_2`,
+                    name: `${userId} Test Image 2`,
+                    preview: 'test_preview_2.jpg',
+                    status: 'approved',
+                    progress: 100,
+                    uploadDate: new Date().toISOString(),
+                    views: Math.floor(Math.random() * 500),
+                    downloads: Math.floor(Math.random() * 25),
+                    earnings: Math.floor(Math.random() * 50)
+                }
+            ];
+            
+            const storageKey = `contributor-images-${userId}`;
+            localStorage.setItem(storageKey, JSON.stringify(testImages));
+            localStorage.setItem(`hasUploadedImages-${userId}`, 'true');
+            
+            console.log(`Added test data for user: ${userId}`);
+            showUserData(userId);
+        }
+
+        function showUserData(userId) {
+            const storageKey = `contributor-images-${userId}`;
+            const data = localStorage.getItem(storageKey);
+            const hasUploaded = localStorage.getItem(`hasUploadedImages-${userId}`);
+            
+            const element = document.getElementById(`${userId}-data`);
+            if (data) {
+                const images = JSON.parse(data);
+                element.innerHTML = `
+                    <strong>Storage Key:</strong> ${storageKey}<br>
+                    <strong>Has Uploaded:</strong> ${hasUploaded}<br>
+                    <strong>Image Count:</strong> ${images.length}<br>
+                    <strong>Images:</strong><br>
+                    ${images.map(img => `- ${img.name} (${img.status}, views: ${img.views})`).join('<br>')}
+                `;
+            } else {
+                element.innerHTML = `
+                    <strong>Storage Key:</strong> ${storageKey}<br>
+                    <strong>Has Uploaded:</strong> ${hasUploaded}<br>
+                    <strong>No data found for this user</strong>
+                `;
+            }
+        }
+
+        function clearAllData() {
+            // Clear all contributor-related data
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+                if (key.startsWith('contributor-') || key.startsWith('hasUploaded-') || key.startsWith('hasVisited-') || key.startsWith('hasSeenUpload-')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            sessionStorage.clear();
+            
+            document.getElementById('userA-data').innerHTML = '';
+            document.getElementById('userB-data').innerHTML = '';
+            document.getElementById('storage-keys').innerHTML = 'All data cleared';
+            
+            console.log('Cleared all test data');
+        }
+
+        function showStorageKeys() {
+            const keys = Object.keys(localStorage).filter(key => 
+                key.startsWith('contributor-') || 
+                key.startsWith('hasUploaded-') || 
+                key.startsWith('hasVisited-') ||
+                key.startsWith('hasSeenUpload-')
+            );
+            
+            document.getElementById('storage-keys').innerHTML = `
+                <strong>Current Storage Keys:</strong><br>
+                ${keys.length > 0 ? keys.join('<br>') : 'No contributor-related keys found'}
+            `;
+        }
+
+        // Initialize
+        showStorageKeys();
+    </script>
+</body>
+</html>

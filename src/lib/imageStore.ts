@@ -22,17 +22,73 @@ interface ImageData {
 class ImageStore {
   private images: ImageData[] = []
   private listeners: Array<() => void> = []
+  private currentUserId: string | null = null
 
   constructor() {
-    // Load from localStorage on initialization
+    this.loadUserData()
+  }
+
+  private getCurrentUserId(): string | null {
+    if (typeof window === 'undefined') return null
+    
+    try {
+      // First try to get from cookie (server-side auth)
+      const cookies = document.cookie.split(';')
+      const tokenCookie = cookies.find(c => c.trim().startsWith('token='))
+      if (tokenCookie) {
+        const token = tokenCookie.split('=')[1]
+        // For now, just use a hash of the token as user ID
+        // In production, you'd decode the JWT to get the user ID
+        return btoa(token).substring(0, 10)
+      }
+
+      // Fallback: try to get from localStorage (client-side auth)
+      const userData = localStorage.getItem('user')
+      if (userData) {
+        const user = JSON.parse(userData)
+        return user.id || user.email || 'anonymous'
+      }
+
+      // Generate a session-based ID for users without auth
+      let sessionId = sessionStorage.getItem('session_id')
+      if (!sessionId) {
+        sessionId = 'user_' + Math.random().toString(36).substring(2, 11)
+        sessionStorage.setItem('session_id', sessionId)
+      }
+      return sessionId
+    } catch (e) {
+      console.error('Error getting user ID:', e)
+      return 'anonymous'
+    }
+  }
+
+  private getUserStorageKey(): string {
+    const userId = this.getCurrentUserId() || 'anonymous'
+    return `contributor-images-${userId}`
+  }
+
+  private loadUserData() {
+    // Load from localStorage on initialization with user-specific key
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('contributor-images')
+      const currentUserId = this.getCurrentUserId()
+      
+      // If user changed, reset the store
+      if (this.currentUserId && this.currentUserId !== currentUserId) {
+        this.images = []
+        this.notifyListeners()
+      }
+      
+      this.currentUserId = currentUserId
+      const stored = localStorage.getItem(this.getUserStorageKey())
       if (stored) {
         try {
           this.images = JSON.parse(stored)
         } catch (e) {
           console.error('Failed to load stored images:', e)
+          this.images = []
         }
+      } else {
+        this.images = []
       }
     }
   }
@@ -233,7 +289,7 @@ class ImageStore {
 
   private persist() {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('contributor-images', JSON.stringify(this.images))
+      localStorage.setItem(this.getUserStorageKey(), JSON.stringify(this.images))
     }
   }
 
@@ -258,9 +314,21 @@ class ImageStore {
     return { kept: liveImages.length, removed: removedCount }
   }
 
+  // Method to refresh user data when user changes (e.g., after login/logout)
+  refreshUserData() {
+    this.loadUserData()
+  }
+
+  // Utility method to get current user ID for debugging
+  getCurrentUser(): string | null {
+    return this.getCurrentUserId()
+  }
+
   // Utility method to get image count by status for debugging
   getDebugInfo() {
     return {
+      currentUser: this.currentUserId,
+      storageKey: this.getUserStorageKey(),
       total: this.images.length,
       byStatus: {
         uploading: this.getImagesByStatus('uploading').length,

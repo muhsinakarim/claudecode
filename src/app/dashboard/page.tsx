@@ -58,13 +58,18 @@ export default function DashboardPage() {
       if (typeof window !== 'undefined') {
         setTimeout(() => {
           try {
+            // Refresh the image store for the current user
+            imageStore.refreshUserData()
+            
             const storedUser = localStorage.getItem('user')
             if (storedUser) {
               const userData = JSON.parse(storedUser)
               setUser(userData)
             } else {
-              // Check if this is first visit
-              const isNewUser = !localStorage.getItem('hasVisitedDashboard')
+              // Check if this is first visit for this session
+              const currentUser = imageStore.getCurrentUser()
+              const userKey = `hasVisitedDashboard-${currentUser}`
+              const isNewUser = !localStorage.getItem(userKey)
               const newUser: User = {
                 name: isNewUser ? 'New Contributor' : 'Contributor',
                 email: 'contributor@example.com',
@@ -73,7 +78,7 @@ export default function DashboardPage() {
               }
               
               if (isNewUser) {
-                localStorage.setItem('hasVisitedDashboard', 'true')
+                localStorage.setItem(userKey, 'true')
               }
               
               setUser(newUser)
@@ -95,7 +100,8 @@ export default function DashboardPage() {
       
       // For truly new users (no images uploaded), show zero stats
       if (currentUser?.contributorStatus === 'new' && typeof window !== 'undefined') {
-        const hasAnyImages = localStorage.getItem('hasUploadedImages') === 'true'
+        const currentUserId = imageStore.getCurrentUser()
+        const hasAnyImages = localStorage.getItem(`hasUploadedImages-${currentUserId}`) === 'true'
         
         if (!hasAnyImages) {
           // New user with no activity - all zeros
